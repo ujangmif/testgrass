@@ -1,3 +1,22 @@
-git add .github/workflows/docker.yml
-git commit -m "Add GitHub Actions workflow for Docker"
-git push origin master
+name: Build and Run Grass
+
+on: [push]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v2
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v1
+      - name: Login to DockerHub
+        env:
+          DOCKERHUB_USERNAME: ${{ secrets.DOCKERHUB_USERNAME }}
+          DOCKERHUB_TOKEN: ${{ secrets.DOCKERHUB_TOKEN }}
+        run: echo $DOCKERHUB_TOKEN | docker login -u $DOCKERHUB_USERNAME --password-stdin
+      - name: Build and Run grass-app
+        run: |
+          docker-compose up -d
+          docker build -t grass-app .
+          docker run grass-app
